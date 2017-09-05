@@ -15,45 +15,48 @@ int main(int argc, char *argv[])
 {
 	/* Variables locales pour stocker les sommets et les triangles du maillage */
 
-   int        NmbVer, dim, deg, FilVer, NmbCor, NmbRidg;
-   int        NmbTet, NmbHex, NmbPri, NmbPyr, NmbTri, NmbQua, NmbEdg, NmbSol;
-   int        NmbTetP2, NmbHexQ2, NmbPriP2, NmbPyrP2, NmbTriP2, NmbQuaQ2, NmbEdgP2, NmbNod;
-   int        NmbTetP3, NmbHexQ3, NmbPriP3, NmbPyrP3, NmbTriP3, NmbQuaQ3, NmbEdgP3;
-   int        NmbTetP4, NmbHexQ4, NmbPriP4, NmbPyrP4, NmbTriP4, NmbQuaQ4, NmbEdgP4;
-   int64_t    InpMsh, InpSol;
-   int        i, j, ite = 0;
-   float      flt;
-   double     dbl, time = 0.0;
-   int        NbrLin, SolSiz, NbrTyp, TypTab[ GmfMaxTyp ];
+  int        NmbVer, dim, deg, FilVer, NmbCor, NmbRidg;
+  int        NmbTet, NmbHex, NmbPri, NmbPyr, NmbTri, NmbQua, NmbEdg, NmbSol;
+  int        NmbTetP2, NmbHexQ2, NmbPriP2, NmbPyrP2, NmbTriP2, NmbQuaQ2, NmbEdgP2, NmbNod;
+  int        NmbTetP3, NmbHexQ3, NmbPriP3, NmbPyrP3, NmbTriP3, NmbQuaQ3, NmbEdgP3;
+  int        NmbTetP4, NmbHexQ4, NmbPriP4, NmbPyrP4, NmbTriP4, NmbQuaQ4, NmbEdgP4;
+  int64_t    InpMsh, InpSol;
+  int        i, j, ite = 0;
+  float      flt;
+  double     dbl, time = 0.0;
+  int        NbrLin, SolSiz, NbrTyp, TypTab[ GmfMaxTyp ];
   
 
-
-   if(argc <= 1){
-     printf(" USAGE : mshinfo name [-check]\n");
-     exit(1);
-   }
-
-   /* L'ouverture du mesh en lecture retourne un pointeur qu'il faudra passer en argument
-   	 a toutes les routines operant sur ce fichier */
+  deg    = 1;
+  NmbNod = 0;
 
 
-   char name[1024];
-   char sol[1024];
+  if(argc <= 1){
+    printf(" USAGE : mshinfo name [-check]\n");
+    exit(1);
+  }
 
-   strcpy(name,argv[1]);
-   strcpy(sol,argv[1]);
-
-
-   char *sub = NULL;
-   sub = strstr(name,".mesh");
+  /* L'ouverture du mesh en lecture retourne un pointeur qu'il faudra passer en argument
+   	a toutes les routines operant sur ce fichier */
 
 
-   char *subsol = NULL;
-   subsol = strstr(name,".sol");
+  char name[1024];
+  char sol[1024];
+
+  strcpy(name,argv[1]);
+  strcpy(sol,argv[1]);
+
+
+  char *sub = NULL;
+  sub = strstr(name,".mesh");
+
+
+  char *subsol = NULL;
+  subsol = strstr(name,".sol");
 
 
   if(subsol == NULL){
-
+    printf("Mesh informations :\n");
     if(sub != NULL) sol[sub-name]='\0';
 
     if(sub != NULL){
@@ -72,7 +75,7 @@ int main(int argc, char *argv[])
         InpMsh = GmfOpenMesh(name, GmfRead, &FilVer, &dim);
         if(InpMsh == 0){
           printf("Cannot open mesh file %s[b] ! \n",name);
-          exit(1);
+          goto Solution;
         }
       }
     }	 
@@ -150,6 +153,8 @@ int main(int argc, char *argv[])
      
   }
   
+  Solution:
+  printf("Solution informations :\n");
   if (subsol != NULL) {
     InpSol = GmfOpenMesh(sol, GmfRead, &FilVer, &dim);
     if (InpSol!= 0 ) {
@@ -222,6 +227,10 @@ int main(int argc, char *argv[])
           }
         }
         GmfCloseMesh(InpSol);
+      }
+      else {
+        printf("Cannot open solution file %s  !\n",sol);
+        exit(1);
       }
     }
   }
@@ -298,6 +307,10 @@ int main(int argc, char *argv[])
           }
         }
         GmfCloseMesh(InpSol);
+      }
+      else {
+        printf("Cannot open solution file %s  !\n",sol);
+        exit(1);
       }
     }
   }
