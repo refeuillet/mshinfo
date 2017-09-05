@@ -1,4 +1,3 @@
-/* Recopie d'un fichier in.mesh dans out.meshb en utilisant la libmesh7 */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -13,10 +12,8 @@ extern const char *GmfKwdFmt[ GmfMaxKwd + 1 ][3];
 
 int main(int argc, char *argv[])
 {
-	/* Variables locales pour stocker les sommets et les triangles du maillage */
-
   int        NmbVer, dim, deg, FilVer, NmbCor, NmbRidg;
-  int        NmbTet, NmbHex, NmbPri, NmbPyr, NmbTri, NmbQua, NmbEdg, NmbSol;
+  int        NmbTet, NmbHex, NmbPri, NmbPyr, NmbTri, NmbQua, NmbEdg;
   int        NmbTetP2, NmbHexQ2, NmbPriP2, NmbPyrP2, NmbTriP2, NmbQuaQ2, NmbEdgP2, NmbNod;
   int        NmbTetP3, NmbHexQ3, NmbPriP3, NmbPyrP3, NmbTriP3, NmbQuaQ3, NmbEdgP3;
   int        NmbTetP4, NmbHexQ4, NmbPriP4, NmbPyrP4, NmbTriP4, NmbQuaQ4, NmbEdgP4;
@@ -36,10 +33,6 @@ int main(int argc, char *argv[])
     exit(1);
   }
 
-  /* L'ouverture du mesh en lecture retourne un pointeur qu'il faudra passer en argument
-   	a toutes les routines operant sur ce fichier */
-
-
   char name[1024];
   char sol[1024];
 
@@ -48,14 +41,15 @@ int main(int argc, char *argv[])
 
 
   char *sub = NULL;
-  sub = strstr(name,".mesh");
+  sub = strstr(name,".mesh"); // check if it has the extension .mesh[b]
 
 
   char *subsol = NULL;
-  subsol = strstr(name,".sol");
+  subsol = strstr(name,".sol"); // check if it has the extension .sol[b]
 
+// Mesh part
 
-  if(subsol == NULL){
+  if(subsol == NULL) { //--- no extension sol[b], check if it is a mesh name without extnsion
     printf("Mesh informations :\n");
     if(sub != NULL) sol[sub-name]='\0';
 
@@ -75,13 +69,12 @@ int main(int argc, char *argv[])
         InpMsh = GmfOpenMesh(name, GmfRead, &FilVer, &dim);
         if(InpMsh == 0){
           printf("Cannot open mesh file %s[b] ! \n",name);
-          goto Solution;
+          goto Solution; //-- check if it is a solution name without extnsion
         }
       }
     }	 
 
-   /* Lecture des dimensions dans le fichier d'entree. Cela permet d'allouer la memoire des l'ouverture
-   	 du fichier avant la lecture proprement dite */
+   /* Get number of entities*/
        
     NmbVer   = GmfStatKwd(InpMsh, GmfVertices);
     NmbCor   = GmfStatKwd(InpMsh, GmfCorners);
@@ -153,8 +146,14 @@ int main(int argc, char *argv[])
      
   }
   
+
+  // solution part
+
+
   Solution:
   printf("Solution informations :\n");
+
+
   if (subsol != NULL) {
     InpSol = GmfOpenMesh(sol, GmfRead, &FilVer, &dim);
     if (InpSol!= 0 ) {
@@ -173,8 +172,8 @@ int main(int argc, char *argv[])
       }  
       printf("dim = %d; ite = %d; time = %lg\n",dim, ite, time);
       for(i=1; i<=GmfMaxKwd; i++) {
-        if( ( (!strcmp(GmfKwdFmt[i][2], "sr")  || !strcmp(GmfKwdFmt[i][2], "hr")) ) && ( (NmbSol = GmfStatKwd(InpSol, i, &NbrTyp, &SolSiz, TypTab, &deg, &NmbNod)) ) ) {
-          printf("%s = %d\n", GmfKwdFmt[i][0], NmbSol);
+        if( ( (!strcmp(GmfKwdFmt[i][2], "sr")  || !strcmp(GmfKwdFmt[i][2], "hr")) ) && ( (NbrLin = GmfStatKwd(InpSol, i, &NbrTyp, &SolSiz, TypTab, &deg, &NmbNod)) ) ) {
+          printf("%s = %d\n", GmfKwdFmt[i][0], NbrLin);
           if ( deg != 1 && NmbNod != 0 )
             printf("deg = %d nbnod = %d\n",deg, NmbNod);
           printf("type = [");
@@ -210,8 +209,8 @@ int main(int argc, char *argv[])
         }  
         printf("dim = %d; ite = %d; time = %lg\n",dim, ite, time);
         for(i=1; i<=GmfMaxKwd; i++) {
-          if( ( (!strcmp(GmfKwdFmt[i][2], "sr")  || !strcmp(GmfKwdFmt[i][2], "hr")) ) && ( (NmbSol = GmfStatKwd(InpSol, i, &NbrTyp, &SolSiz, TypTab, &deg, &NmbNod)) ) ) {
-            printf("%s = %d\n", GmfKwdFmt[i][0], NmbSol);
+          if( ( (!strcmp(GmfKwdFmt[i][2], "sr")  || !strcmp(GmfKwdFmt[i][2], "hr")) ) && ( (NbrLin = GmfStatKwd(InpSol, i, &NbrTyp, &SolSiz, TypTab, &deg, &NmbNod)) ) ) {
+            printf("%s = %d\n", GmfKwdFmt[i][0], NbrLin);
             if ( deg != 1 && NmbNod != 0 )
               printf("deg = %d nbnod = %d\n",deg, NmbNod);
             printf("type = [");
@@ -229,8 +228,8 @@ int main(int argc, char *argv[])
         GmfCloseMesh(InpSol);
       }
       else {
-        printf("Cannot open solution file %s  !\n",sol);
-        exit(1);
+        printf("Cannot open solution file %s  !\n",sol);  //-- no solution file linked to the name in input
+        goto End;
       }
     }
   }
@@ -253,8 +252,8 @@ int main(int argc, char *argv[])
         }  
         printf("dim = %d; ite = %d; time = %lg\n",dim, ite, time);
         for(i=1; i<=GmfMaxKwd; i++) {
-          if( ( (!strcmp(GmfKwdFmt[i][2], "sr")  || !strcmp(GmfKwdFmt[i][2], "hr")) ) && ( (NmbSol = GmfStatKwd(InpSol, i, &NbrTyp, &SolSiz, TypTab, &deg, &NmbNod)) ) ) {
-            printf("%s = %d\n", GmfKwdFmt[i][0], NmbSol);
+          if( ( (!strcmp(GmfKwdFmt[i][2], "sr")  || !strcmp(GmfKwdFmt[i][2], "hr")) ) && ( (NbrLin = GmfStatKwd(InpSol, i, &NbrTyp, &SolSiz, TypTab, &deg, &NmbNod)) ) ) {
+            printf("%s = %d\n", GmfKwdFmt[i][0], NbrLin);
             if ( deg != 1 && NmbNod != 0 )
               printf("deg = %d nbnod = %d\n",deg, NmbNod);
             printf("type = [");
@@ -290,8 +289,8 @@ int main(int argc, char *argv[])
         }  
         printf("dim = %d; ite = %d; time = %lg\n",dim, ite, time);
         for(i=1; i<=GmfMaxKwd; i++) {
-          if( ( (!strcmp(GmfKwdFmt[i][2], "sr")  || !strcmp(GmfKwdFmt[i][2], "hr")) ) && ( (NmbSol = GmfStatKwd(InpSol, i, &NbrTyp, &SolSiz, TypTab, &deg, &NmbNod)) ) ) {
-            printf("%s = %d\n", GmfKwdFmt[i][0], NmbSol);
+          if( ( (!strcmp(GmfKwdFmt[i][2], "sr")  || !strcmp(GmfKwdFmt[i][2], "hr")) ) && ( (NbrLin = GmfStatKwd(InpSol, i, &NbrTyp, &SolSiz, TypTab, &deg, &NmbNod)) ) ) {
+            printf("%s = %d\n", GmfKwdFmt[i][0], NbrLin);
             if ( deg != 1 && NmbNod != 0 )
               printf("deg = %d nbnod = %d\n",deg, NmbNod);
             printf("type = [");
@@ -309,11 +308,13 @@ int main(int argc, char *argv[])
         GmfCloseMesh(InpSol);
       }
       else {
-        printf("Cannot open solution file %s  !\n",sol);
-        exit(1);
+        printf("Cannot open solution file %s  !\n",sol); //-- no solution file linked to the name in input
+        goto End;
       }
     }
   }
 
+End :
+return(0);
 
 }
