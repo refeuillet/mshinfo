@@ -15,9 +15,9 @@ int main(int argc, char *argv[])
 {
 	/* Variables locales pour stocker les sommets et les triangles du maillage */
 
-   int        NmbVer, dim, FilVer, NmbCor, NmbRidg;
+   int        NmbVer, dim, deg, FilVer, NmbCor, NmbRidg;
    int        NmbTet, NmbHex, NmbPri, NmbPyr, NmbTri, NmbQua, NmbEdg, NmbSol;
-   int        NmbTetP2, NmbHexQ2, NmbPriP2, NmbPyrP2, NmbTriP2, NmbQuaQ2, NmbEdgP2;
+   int        NmbTetP2, NmbHexQ2, NmbPriP2, NmbPyrP2, NmbTriP2, NmbQuaQ2, NmbEdgP2, NmbNod;
    int        NmbTetP3, NmbHexQ3, NmbPriP3, NmbPyrP3, NmbTriP3, NmbQuaQ3, NmbEdgP3;
    int        NmbTetP4, NmbHexQ4, NmbPriP4, NmbPyrP4, NmbTriP4, NmbQuaQ4, NmbEdgP4;
    int64_t    InpMsh, InpSol;
@@ -57,7 +57,7 @@ int main(int argc, char *argv[])
     if(sub != NULL) sol[sub-name]='\0';
 
     if(sub != NULL){
-      InpMsh = GmfOpenMesh(name, GmfRead,&FilVer,&dim);
+      InpMsh = GmfOpenMesh(name, GmfRead, &FilVer, &dim);
       if( InpMsh == 0 ){
         printf("Cannot open mesh file %s  !\n",name);
         exit(1);
@@ -168,8 +168,10 @@ int main(int argc, char *argv[])
       }  
       printf("dim = %d; ite = %d; time = %lg\n",dim, ite, time);
       for(i=1; i<=GmfMaxKwd; i++) {
-        if( ( (!strcmp(GmfKwdFmt[i][2], "sr")  || !strcmp(GmfKwdFmt[i][2], "hr")) ) && ( (NmbSol = GmfStatKwd(InpSol, i, &NbrTyp, &SolSiz, TypTab)) ) ) {
+        if( ( (!strcmp(GmfKwdFmt[i][2], "sr")  || !strcmp(GmfKwdFmt[i][2], "hr")) ) && ( (NmbSol = GmfStatKwd(InpSol, i, &NbrTyp, &SolSiz, TypTab, &deg, &NmbNod)) ) ) {
           printf("%s = %d\n", GmfKwdFmt[i][0], NmbSol);
+          if ( deg != 1 && NmbNod != 0 )
+            printf("deg = %d nbnod = %d\n",deg, NmbNod);
           printf("type = [");
           for(j=0; j<NbrTyp; j++) {
             if (      TypTab[j] == 1 ) printf(" scalar ");
@@ -178,6 +180,8 @@ int main(int argc, char *argv[])
             else if ( TypTab[j] == 4 ) printf(" matrix ");
           }
           printf("]\n");
+          deg = 1;
+          NmbNod = 0;
         }
       }
       GmfCloseMesh(InpSol);
@@ -201,8 +205,10 @@ int main(int argc, char *argv[])
         }  
         printf("dim = %d; ite = %d; time = %lg\n",dim, ite, time);
         for(i=1; i<=GmfMaxKwd; i++) {
-          if( ( (!strcmp(GmfKwdFmt[i][2], "sr")  || !strcmp(GmfKwdFmt[i][2], "hr")) ) && ( (NmbSol = GmfStatKwd(InpSol, i, &NbrTyp, &SolSiz, TypTab)) ) ) {
+          if( ( (!strcmp(GmfKwdFmt[i][2], "sr")  || !strcmp(GmfKwdFmt[i][2], "hr")) ) && ( (NmbSol = GmfStatKwd(InpSol, i, &NbrTyp, &SolSiz, TypTab, &deg, &NmbNod)) ) ) {
             printf("%s = %d\n", GmfKwdFmt[i][0], NmbSol);
+            if ( deg != 1 && NmbNod != 0 )
+              printf("deg = %d nbnod = %d\n",deg, NmbNod);
             printf("type = [");
             for(j=0; j<NbrTyp; j++) {
               if (      TypTab[j] == 1 ) printf(" scalar ");
@@ -211,6 +217,8 @@ int main(int argc, char *argv[])
               else if ( TypTab[j] == 4 ) printf(" matrix ");
             }
             printf("]\n");
+            deg = 1;
+            NmbNod = 0;
           }
         }
         GmfCloseMesh(InpSol);
@@ -236,8 +244,10 @@ int main(int argc, char *argv[])
         }  
         printf("dim = %d; ite = %d; time = %lg\n",dim, ite, time);
         for(i=1; i<=GmfMaxKwd; i++) {
-          if( ( (!strcmp(GmfKwdFmt[i][2], "sr")  || !strcmp(GmfKwdFmt[i][2], "hr")) ) && ( (NmbSol = GmfStatKwd(InpSol, i, &NbrTyp, &SolSiz, TypTab)) ) ) {
+          if( ( (!strcmp(GmfKwdFmt[i][2], "sr")  || !strcmp(GmfKwdFmt[i][2], "hr")) ) && ( (NmbSol = GmfStatKwd(InpSol, i, &NbrTyp, &SolSiz, TypTab, &deg, &NmbNod)) ) ) {
             printf("%s = %d\n", GmfKwdFmt[i][0], NmbSol);
+            if ( deg != 1 && NmbNod != 0 )
+              printf("deg = %d nbnod = %d\n",deg, NmbNod);
             printf("type = [");
             for(j=0; j<NbrTyp; j++) {
               if (      TypTab[j] == 1 ) printf(" scalar ");
@@ -246,6 +256,8 @@ int main(int argc, char *argv[])
               else if ( TypTab[j] == 4 ) printf(" matrix ");
             }
             printf("]\n");
+            deg = 1;
+            NmbNod = 0;
           }
         }
        GmfCloseMesh(InpSol);
@@ -269,8 +281,10 @@ int main(int argc, char *argv[])
         }  
         printf("dim = %d; ite = %d; time = %lg\n",dim, ite, time);
         for(i=1; i<=GmfMaxKwd; i++) {
-          if( ( (!strcmp(GmfKwdFmt[i][2], "sr")  || !strcmp(GmfKwdFmt[i][2], "hr")) ) && ( (NmbSol = GmfStatKwd(InpSol, i, &NbrTyp, &SolSiz, TypTab)) ) ) {
+          if( ( (!strcmp(GmfKwdFmt[i][2], "sr")  || !strcmp(GmfKwdFmt[i][2], "hr")) ) && ( (NmbSol = GmfStatKwd(InpSol, i, &NbrTyp, &SolSiz, TypTab, &deg, &NmbNod)) ) ) {
             printf("%s = %d\n", GmfKwdFmt[i][0], NmbSol);
+            if ( deg != 1 && NmbNod != 0 )
+              printf("deg = %d nbnod = %d\n",deg, NmbNod);
             printf("type = [");
             for(j=0; j<NbrTyp; j++) {
               if (      TypTab[j] == 1 ) printf(" scalar ");
@@ -279,6 +293,8 @@ int main(int argc, char *argv[])
               else if ( TypTab[j] == 4 ) printf(" matrix ");
             }
             printf("]\n");
+            deg = 1;
+            NmbNod = 0;
           }
         }
         GmfCloseMesh(InpSol);
