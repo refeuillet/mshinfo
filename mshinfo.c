@@ -28,7 +28,7 @@ int main(int argc, char *argv[])
   NmbNod = 0;
 
 
-  if(argc <= 1){
+  if (argc <= 1) {
     printf(" USAGE : mshinfo name [-check]\n");
     exit(1);
   }
@@ -50,10 +50,10 @@ int main(int argc, char *argv[])
 // Mesh part
 
 //-- test the reading of the file as a mesh
-  if(subsol == NULL) { //--- no extension sol[b], check if it is a mesh name without extnsion
+  if (subsol == NULL) { //--- no extension sol[b], check if it is a mesh name without extnsion
     if(sub != NULL) sol[sub-name]='\0'; // change file name to be opened as sol even if mesh extension is given
 
-    if(sub != NULL)
+    if (sub != NULL)
       InpMsh = GmfOpenMesh(name, GmfRead, &FilVer, &dim);
     else {
       strcat(name,".meshb");
@@ -181,7 +181,7 @@ int main(int argc, char *argv[])
       if( ( (!strcmp(GmfKwdFmt[i][2], "sr")  || !strcmp(GmfKwdFmt[i][2], "hr")) ) && ( (NbrLin = GmfStatKwd(InpSol, i, &NbrTyp, &SolSiz, TypTab, &deg, &NmbNod)) ) ) {
         printf("%s = %d\n", GmfKwdFmt[i][0], NbrLin);
         if ( deg != 1 && NmbNod != 0 )
-          printf("deg = %d nbnod = %d\n",deg, NmbNod);
+          printf("deg = %d; nbnod = %d\n",deg, NmbNod);
         printf("type = [");
         for(j=0; j<NbrTyp; j++) {
           if (      TypTab[j] == 1 ) printf(" scalar ");
