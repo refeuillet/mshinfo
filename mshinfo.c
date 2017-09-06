@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
     }
   }
 
-  if ( InpMsh != 0 ) {
+  if ( InpMsh != 0 && subsol == NULL ) {
     printf("Mesh informations :\n");
    /* Get number of entities*/
        
