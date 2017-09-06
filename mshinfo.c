@@ -53,20 +53,15 @@ int main(int argc, char *argv[])
   if(subsol == NULL) { //--- no extension sol[b], check if it is a mesh name without extnsion
     if(sub != NULL) sol[sub-name]='\0'; // change file name to be opened as sol even if mesh extension is given
 
-    if(sub != NULL) {
+    if(sub != NULL)
       InpMsh = GmfOpenMesh(name, GmfRead, &FilVer, &dim);
-      if(InpMsh == 0)
-        goto Solution; //-- check if it is a solution name without extnsion
-    }
-    else{
+    else {
       strcat(name,".meshb");
       InpMsh = GmfOpenMesh(name, GmfRead, &FilVer, &dim);
       if(InpMsh == 0){
         int ln = strlen(name);
         name[ln -1] = '\0';
         InpMsh = GmfOpenMesh(name, GmfRead, &FilVer, &dim);
-        if(InpMsh == 0)
-          goto Solution; //-- check if it is a solution name without extnsion
       }
     }
   }
@@ -148,16 +143,12 @@ int main(int argc, char *argv[])
 
   // solution part
 
-
-  Solution:
 //-- test the reading of the file as a solution
   if (subsol != NULL) { //--- a file containing char ".sol" is given in input
     InpSol = GmfOpenMesh(sol, GmfRead, &FilVer, &dim);
     if ( InpSol == 0 ) {
       strcat(sol,"b");
       InpSol = GmfOpenMesh(sol, GmfRead, &FilVer, &dim);
-      if ( InpSol == 0 )
-        goto End;
     }
   }
   else { //-- check if a solution with the same name as the mesh one exists
@@ -166,14 +157,12 @@ int main(int argc, char *argv[])
     if ( InpSol == 0 ) {
       strcat(sol,"b");
       InpSol = GmfOpenMesh(sol, GmfRead, &FilVer, &dim);
-      if ( InpSol == 0 )
-        goto End;
     }
   }
 
-  printf("Solution informations :\n");
-
   if (InpSol!= 0 ) {
+    printf("Solution informations :\n");
+
     GmfGotoKwd(InpSol, GmfTime);
     if ( FilVer == GmfFloat ) {	// read 32 bits float
      GmfGetLin(InpSol, GmfTime, &flt);
@@ -208,7 +197,6 @@ int main(int argc, char *argv[])
     GmfCloseMesh(InpSol);
   }
 
-  End:
   if ( InpSol == 0 && InpMsh == 0 ) {
     printf("cannot open mesh/solution file %s\n", argv[1]);
     exit(1);
