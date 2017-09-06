@@ -49,16 +49,14 @@ int main(int argc, char *argv[])
 
 // Mesh part
 
+//-- test the reading of the file as a mesh
   if(subsol == NULL) { //--- no extension sol[b], check if it is a mesh name without extnsion
-    printf("Mesh informations :\n");
-    if(sub != NULL) sol[sub-name]='\0';
+    if(sub != NULL) sol[sub-name]='\0'; // change file name to be opened as sol even if mesh extension is given
 
-    if(sub != NULL){
+    if(sub != NULL) {
       InpMsh = GmfOpenMesh(name, GmfRead, &FilVer, &dim);
-      if( InpMsh == 0 ){
-        printf("Cannot open mesh file %s  !\n",name);
-        exit(1);
-      }
+      if(InpMsh == 0)
+        goto Solution; //-- check if it is a solution name without extnsion
     }
     else{
       strcat(name,".meshb");
@@ -67,13 +65,14 @@ int main(int argc, char *argv[])
         int ln = strlen(name);
         name[ln -1] = '\0';
         InpMsh = GmfOpenMesh(name, GmfRead, &FilVer, &dim);
-        if(InpMsh == 0){
-          printf("Cannot open mesh file %s[b] ! \n",name);
+        if(InpMsh == 0)
           goto Solution; //-- check if it is a solution name without extnsion
-        }
       }
-    }	 
+    }
+  }
 
+  if ( InpMsh != 0 ) {
+    printf("Mesh informations :\n");
    /* Get number of entities*/
        
     NmbVer   = GmfStatKwd(InpMsh, GmfVertices);
@@ -151,170 +150,70 @@ int main(int argc, char *argv[])
 
 
   Solution:
-  printf("Solution informations :\n");
-
-
-  if (subsol != NULL) {
+//-- test the reading of the file as a solution
+  if (subsol != NULL) { //--- a file containing char ".sol" is given in input
     InpSol = GmfOpenMesh(sol, GmfRead, &FilVer, &dim);
-    if (InpSol!= 0 ) {
-      GmfGotoKwd(InpSol, GmfTime);
-      if ( FilVer == GmfFloat ) {	// read 32 bits float
-       GmfGetLin(InpSol, GmfTime, &flt);
-       time = (double)flt;
-      }  
-      else if ( FilVer == GmfDouble ) {	// read 64 bits float
-        GmfGetLin(InpSol, GmfTime, &dbl);
-        time = dbl;
-      }
-      if ( GmfStatKwd(InpSol, GmfIterations) ) {
-        GmfGotoKwd(InpSol, GmfIterations);
-        GmfGetLin( InpSol, GmfIterations, &ite);  
-      }  
-      printf("dim = %d; ite = %d; time = %lg\n",dim, ite, time);
-      for(i=1; i<=GmfMaxKwd; i++) {
-        if( ( (!strcmp(GmfKwdFmt[i][2], "sr")  || !strcmp(GmfKwdFmt[i][2], "hr")) ) && ( (NbrLin = GmfStatKwd(InpSol, i, &NbrTyp, &SolSiz, TypTab, &deg, &NmbNod)) ) ) {
-          printf("%s = %d\n", GmfKwdFmt[i][0], NbrLin);
-          if ( deg != 1 && NmbNod != 0 )
-            printf("deg = %d nbnod = %d\n",deg, NmbNod);
-          printf("type = [");
-          for(j=0; j<NbrTyp; j++) {
-            if (      TypTab[j] == 1 ) printf(" scalar ");
-            else if ( TypTab[j] == 2 ) printf(" vector ");
-            else if ( TypTab[j] == 3 ) printf(" metric ");
-            else if ( TypTab[j] == 4 ) printf(" matrix ");
-          }
-          printf("]\n");
-          deg = 1;
-          NmbNod = 0;
-        }
-      }
-      GmfCloseMesh(InpSol);
-    }
-    else { 
+    if ( InpSol == 0 ) {
       strcat(sol,"b");
       InpSol = GmfOpenMesh(sol, GmfRead, &FilVer, &dim);
-      if ( InpSol!= 0 ) {
-        GmfGotoKwd(InpSol, GmfTime);
-        if ( FilVer == GmfFloat ) { // read 32 bits float
-          GmfGetLin(InpSol, GmfTime, &flt);
-          time = (double)flt;
-        }  
-        else if ( FilVer == GmfDouble ) { // read 64 bits float
-          GmfGetLin(InpSol, GmfTime, &dbl);
-          time = dbl;
-        }
-        if ( GmfStatKwd(InpSol, GmfIterations) ) {
-          GmfGotoKwd(InpSol, GmfIterations);
-          GmfGetLin( InpSol, GmfIterations, &ite);  
-        }  
-        printf("dim = %d; ite = %d; time = %lg\n",dim, ite, time);
-        for(i=1; i<=GmfMaxKwd; i++) {
-          if( ( (!strcmp(GmfKwdFmt[i][2], "sr")  || !strcmp(GmfKwdFmt[i][2], "hr")) ) && ( (NbrLin = GmfStatKwd(InpSol, i, &NbrTyp, &SolSiz, TypTab, &deg, &NmbNod)) ) ) {
-            printf("%s = %d\n", GmfKwdFmt[i][0], NbrLin);
-            if ( deg != 1 && NmbNod != 0 )
-              printf("deg = %d nbnod = %d\n",deg, NmbNod);
-            printf("type = [");
-            for(j=0; j<NbrTyp; j++) {
-              if (      TypTab[j] == 1 ) printf(" scalar ");
-              else if ( TypTab[j] == 2 ) printf(" vector ");
-              else if ( TypTab[j] == 3 ) printf(" metric ");
-              else if ( TypTab[j] == 4 ) printf(" matrix ");
-            }
-            printf("]\n");
-            deg = 1;
-            NmbNod = 0;
-          }
-        }
-        GmfCloseMesh(InpSol);
-      }
-      else {
-        printf("Cannot open solution file %s  !\n",sol);  //-- no solution file linked to the name in input
+      if ( InpSol == 0 )
         goto End;
-      }
     }
   }
-  else {
+  else { //-- check if a solution with the same name as the mesh one exists
     strcat(sol,".sol");
     InpSol = GmfOpenMesh(sol, GmfRead, &FilVer, &dim);
-    if ( InpSol!= 0 ) {
-        GmfGotoKwd(InpSol, GmfTime);
-        if ( FilVer == GmfFloat ) { // read 32 bits float
-         GmfGetLin(InpSol, GmfTime, &flt);
-         time = (double)flt;
-        }  
-        else if ( FilVer == GmfDouble ) { // read 64 bits float
-          GmfGetLin(InpSol, GmfTime, &dbl);
-          time = dbl;
-        }
-        if ( GmfStatKwd(InpSol, GmfIterations) ) {
-          GmfGotoKwd(InpSol, GmfIterations);
-          GmfGetLin( InpSol, GmfIterations, &ite);  
-        }  
-        printf("dim = %d; ite = %d; time = %lg\n",dim, ite, time);
-        for(i=1; i<=GmfMaxKwd; i++) {
-          if( ( (!strcmp(GmfKwdFmt[i][2], "sr")  || !strcmp(GmfKwdFmt[i][2], "hr")) ) && ( (NbrLin = GmfStatKwd(InpSol, i, &NbrTyp, &SolSiz, TypTab, &deg, &NmbNod)) ) ) {
-            printf("%s = %d\n", GmfKwdFmt[i][0], NbrLin);
-            if ( deg != 1 && NmbNod != 0 )
-              printf("deg = %d nbnod = %d\n",deg, NmbNod);
-            printf("type = [");
-            for(j=0; j<NbrTyp; j++) {
-              if (      TypTab[j] == 1 ) printf(" scalar ");
-              else if ( TypTab[j] == 2 ) printf(" vector ");
-              else if ( TypTab[j] == 3 ) printf(" metric ");
-              else if ( TypTab[j] == 4 ) printf(" matrix ");
-            }
-            printf("]\n");
-            deg = 1;
-            NmbNod = 0;
-          }
-        }
-       GmfCloseMesh(InpSol);
-    }
-    else {
+    if ( InpSol == 0 ) {
       strcat(sol,"b");
       InpSol = GmfOpenMesh(sol, GmfRead, &FilVer, &dim);
-      if ( InpSol!= 0 ) {
-        GmfGotoKwd(InpSol, GmfTime);
-        if ( FilVer == GmfFloat ) { // read 32 bits float
-          GmfGetLin(InpSol, GmfTime, &flt);
-          time = (double)flt;
-        }  
-        else if ( FilVer == GmfDouble ) { // read 64 bits float
-          GmfGetLin(InpSol, GmfTime, &dbl);
-          time = dbl;
-        }
-        if ( GmfStatKwd(InpSol, GmfIterations) ) {
-          GmfGotoKwd(InpSol, GmfIterations);
-          GmfGetLin( InpSol, GmfIterations, &ite);  
-        }  
-        printf("dim = %d; ite = %d; time = %lg\n",dim, ite, time);
-        for(i=1; i<=GmfMaxKwd; i++) {
-          if( ( (!strcmp(GmfKwdFmt[i][2], "sr")  || !strcmp(GmfKwdFmt[i][2], "hr")) ) && ( (NbrLin = GmfStatKwd(InpSol, i, &NbrTyp, &SolSiz, TypTab, &deg, &NmbNod)) ) ) {
-            printf("%s = %d\n", GmfKwdFmt[i][0], NbrLin);
-            if ( deg != 1 && NmbNod != 0 )
-              printf("deg = %d nbnod = %d\n",deg, NmbNod);
-            printf("type = [");
-            for(j=0; j<NbrTyp; j++) {
-              if (      TypTab[j] == 1 ) printf(" scalar ");
-              else if ( TypTab[j] == 2 ) printf(" vector ");
-              else if ( TypTab[j] == 3 ) printf(" metric ");
-              else if ( TypTab[j] == 4 ) printf(" matrix ");
-            }
-            printf("]\n");
-            deg = 1;
-            NmbNod = 0;
-          }
-        }
-        GmfCloseMesh(InpSol);
-      }
-      else {
-        printf("Cannot open solution file %s  !\n",sol); //-- no solution file linked to the name in input
+      if ( InpSol == 0 )
         goto End;
-      }
     }
   }
 
-End :
-return(0);
+  printf("Solution informations :\n");
+
+  if (InpSol!= 0 ) {
+    GmfGotoKwd(InpSol, GmfTime);
+    if ( FilVer == GmfFloat ) {	// read 32 bits float
+     GmfGetLin(InpSol, GmfTime, &flt);
+     time = (double)flt;
+    }  
+    else if ( FilVer == GmfDouble ) {	// read 64 bits float
+      GmfGetLin(InpSol, GmfTime, &dbl);
+      time = dbl;
+    }
+    if ( GmfStatKwd(InpSol, GmfIterations) ) {
+      GmfGotoKwd(InpSol, GmfIterations);
+      GmfGetLin( InpSol, GmfIterations, &ite);  
+    }  
+    printf("dim = %d; ite = %d; time = %lg\n",dim, ite, time);
+    for(i=1; i<=GmfMaxKwd; i++) {
+      if( ( (!strcmp(GmfKwdFmt[i][2], "sr")  || !strcmp(GmfKwdFmt[i][2], "hr")) ) && ( (NbrLin = GmfStatKwd(InpSol, i, &NbrTyp, &SolSiz, TypTab, &deg, &NmbNod)) ) ) {
+        printf("%s = %d\n", GmfKwdFmt[i][0], NbrLin);
+        if ( deg != 1 && NmbNod != 0 )
+          printf("deg = %d nbnod = %d\n",deg, NmbNod);
+        printf("type = [");
+        for(j=0; j<NbrTyp; j++) {
+          if (      TypTab[j] == 1 ) printf(" scalar ");
+          else if ( TypTab[j] == 2 ) printf(" vector ");
+          else if ( TypTab[j] == 3 ) printf(" metric ");
+          else if ( TypTab[j] == 4 ) printf(" matrix ");
+        }
+        printf("]\n");
+        deg = 1;
+        NmbNod = 0;
+      }
+    }
+    GmfCloseMesh(InpSol);
+  }
+
+  End:
+  if ( InpSol == 0 && InpMsh == 0 ) {
+    printf("cannot open mesh/solution file %s\n", argv[1]);
+    exit(1);
+  }
+
+  return(0);
 
 }
