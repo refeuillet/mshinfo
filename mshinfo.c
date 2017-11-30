@@ -17,7 +17,7 @@ int main(int argc, char *argv[])
   int        NmbTetP2, NmbHexQ2, NmbPriP2, NmbPyrP2, NmbTriP2, NmbQuaQ2, NmbEdgP2, NmbNod;
   int        NmbTetP3, NmbHexQ3, NmbPriP3, NmbPyrP3, NmbTriP3, NmbQuaQ3, NmbEdgP3;
   int        NmbTetP4, NmbHexQ4, NmbPriP4, NmbPyrP4, NmbTriP4, NmbQuaQ4, NmbEdgP4;
-  int64_t    InpMsh, InpSol;
+  int64_t    InpMsh = 0, InpSol = 0;
   int        i, j, ite = 0;
   float      flt;
   double     dbl, time = 0.0;
@@ -162,15 +162,16 @@ int main(int argc, char *argv[])
 
   if (InpSol!= 0 ) {
     printf("Solution informations :\n");
-
-    GmfGotoKwd(InpSol, GmfTime);
-    if ( FilVer == GmfFloat ) {	// read 32 bits float
-     GmfGetLin(InpSol, GmfTime, &flt);
-     time = (double)flt;
-    }  
-    else if ( FilVer == GmfDouble ) {	// read 64 bits float
-      GmfGetLin(InpSol, GmfTime, &dbl);
-      time = dbl;
+    if ( GmfStatKwd(InpSol, GmfTime) ) {
+      GmfGotoKwd(InpSol, GmfTime);
+      if ( FilVer == GmfFloat ) {	// read 32 bits float
+       GmfGetLin(InpSol, GmfTime, &flt);
+       time = (double)flt;
+      }  
+      else if ( FilVer == GmfDouble ) {	// read 64 bits float
+        GmfGetLin(InpSol, GmfTime, &dbl);
+        time = dbl;
+      }
     }
     if ( GmfStatKwd(InpSol, GmfIterations) ) {
       GmfGotoKwd(InpSol, GmfIterations);
