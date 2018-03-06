@@ -2,14 +2,14 @@
 
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
-/*                               LIBMESH V 7.29                               */
+/*                               LIBMESH V 7.35                               */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
 /*   Description:        handles .meshb file format I/O                       */
 /*   Author:             Loic MARECHAL                                        */
 /*   Creation date:      dec 09 1999                                          */
-/*   Last modification:  jul 19 2017                                          */
+/*   Last modification:  mar 06 2018                                          */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -21,23 +21,23 @@
 
 // Add a final underscore to Fortran procedure names
 #ifdef F77_NO_UNDER_SCORE
-#define NAMF77(c,f) f
-#define APIF77(x) x
+#define NAMF77(c,f)  f
+#define APIF77(x)    x
 #else
-#define NAMF77(c,f) f ## _
-#define APIF77(x) x ## _
+#define NAMF77(c,f)  f ## _
+#define APIF77(x)    x ## _
 #endif
 
 // Pass parameters as pointers in Fortran
-#define VALF77(v) *v
-#define TYPF77(t) t*
+#define VALF77(v)    *v
+#define TYPF77(t)    t*
 
 #else
 
 // Pass parameters as values in C
-#define NAMF77(c,f) c
-#define VALF77(v) v
-#define TYPF77(t) t
+#define NAMF77(c,f)  c
+#define VALF77(v)    v
+#define TYPF77(t)    t
 
 #endif
 
@@ -87,10 +87,10 @@
 #include <sys/types.h>
 #include <wchar.h>
 
-#define OPEN_READ_FLAGS   O_RDONLY | _O_BINARY
-#define OPEN_WRITE_FLAGS  O_CREAT | O_WRONLY | O_TRUNC | _O_BINARY
-#define OPEN_READ_MODE   _S_IREAD
-#define OPEN_WRITE_MODE   _S_IREAD | S_IWRITE 
+#define OPEN_READ_FLAGS    O_RDONLY | _O_BINARY
+#define OPEN_WRITE_FLAGS   O_CREAT | O_WRONLY | O_TRUNC | _O_BINARY
+#define OPEN_READ_MODE     _S_IREAD
+#define OPEN_WRITE_MODE    _S_IREAD | S_IWRITE 
 
 #endif
 
@@ -134,8 +134,8 @@ int aio_error( const struct aiocb * aiocbp )
 // Set the file position and read a block of data
 int aio_read( struct aiocb * aiocbp )
 {
-   if( (fseek(aiocbp->aio_fildes, (off_t)aiocbp->aio_offset, SEEK_SET) == 0) \
-   &&  (fread(aiocbp->aio_buf, 1, aiocbp->aio_nbytes, aiocbp->aio_fildes) \
+   if( (fseek(aiocbp->aio_fildes, (off_t)aiocbp->aio_offset, SEEK_SET) == 0)
+   &&  (fread(aiocbp->aio_buf, 1, aiocbp->aio_nbytes, aiocbp->aio_fildes)
        == aiocbp->aio_nbytes) )
    {
       aiocbp->aio_lio_opcode = 0;
@@ -156,8 +156,8 @@ size_t aio_return( struct aiocb * aiocbp )
 // Set the file position and write a block of data
 int aio_write( struct aiocb * aiocbp )
 {
-   if( (fseek(aiocbp->aio_fildes, (off_t)aiocbp->aio_offset, SEEK_SET) == 0) \
-   &&  (fwrite(aiocbp->aio_buf, 1, aiocbp->aio_nbytes, aiocbp->aio_fildes) \
+   if( (fseek(aiocbp->aio_fildes, (off_t)aiocbp->aio_offset, SEEK_SET) == 0)
+   &&  (fwrite(aiocbp->aio_buf, 1, aiocbp->aio_nbytes, aiocbp->aio_fildes)
        == aiocbp->aio_nbytes) )
    {
       aiocbp->aio_lio_opcode = 0;
@@ -178,18 +178,18 @@ int aio_write( struct aiocb * aiocbp )
 /* Defines                                                                    */
 /*----------------------------------------------------------------------------*/
 
-#define Asc 1
-#define Bin 2
-#define MshFil 4
-#define SolFil 8
-#define InfKwd 1
-#define RegKwd 2
-#define SolKwd 3
-#define CmtKwd 4
-#define WrdSiz 4
+#define Asc       1
+#define Bin       2
+#define MshFil    4
+#define SolFil    8
+#define InfKwd    1
+#define RegKwd    2
+#define SolKwd    3
+#define CmtKwd    4
+#define WrdSiz    4
 #define FilStrSiz 64
-#define BufSiz 10000
-#define MaxArg 20
+#define BufSiz    10000
+#define MaxArg    20
 
 
 /*----------------------------------------------------------------------------*/
@@ -198,23 +198,26 @@ int aio_write( struct aiocb * aiocbp )
 
 typedef struct
 {
-   int typ, deg, NmbNod, SolSiz, NmbWrd, NmbTyp, TypTab[ GmfMaxTyp ];
-   int64_t NmbLin, pos;
-   char fmt[ GmfMaxTyp*9 ];
+   int      typ, deg, NmbNod, SolSiz, NmbWrd, NmbTyp, TypTab[ GmfMaxTyp ];
+   int      *OrdTab;
+   int64_t  NmbLin;
+   size_t   pos;
+   char     fmt[ GmfMaxTyp*9 ];
 }KwdSct;
 
 typedef struct
 {
-   int dim, ver, mod, typ, cod, FilDes;
-   int64_t NexKwdPos, siz, pos;
-   jmp_buf err;
-   KwdSct KwdTab[ GmfMaxKwd + 1 ];
-   FILE *hdl;
-   int *IntBuf;
-   float *FltBuf;
-   char *buf;
-   char FilNam[ GmfStrSiz ];
-   double DblBuf[1000/8];
+   int      dim, ver, mod, typ, cod, FilDes;
+   int64_t  NexKwdPos, siz;
+   size_t   pos;
+   jmp_buf  err;
+   KwdSct   KwdTab[ GmfMaxKwd + 1 ];
+   FILE     *hdl;
+   int      *IntBuf;
+   float    *FltBuf;
+   char     *buf;
+   char     FilNam[ GmfStrSiz ];
+   double   DblBuf[1000/8];
    unsigned char blk[ BufSiz + 1000 ];
 }GmfMshSct;
 
@@ -349,7 +352,37 @@ const char *GmfKwdFmt[ GmfMaxKwd + 1 ][3] =
    {"HOSolAtPrismsP3",                          "i", "hr"},
    {"HOSolAtHexahedraQ1",                       "i", "hr"},
    {"HOSolAtHexahedraQ2",                       "i", "hr"},
-   {"HOSolAtHexahedraQ3",                       "i", "hr"}
+   {"HOSolAtHexahedraQ3",                       "i", "hr"},
+   {"BezierMode",                               "",  "i"},
+   {"ByteFlow",                                 "i", "i"},
+   {"EdgesP2Ordering",                          "i",  "i"},
+   {"EdgesP3Ordering",                          "i",  "i"},
+   {"TrianglesP2Ordering",                      "i",  "iii"},
+   {"TrianglesP3Ordering",                      "i",  "iii"},
+   {"QuadrilateralsQ2Ordering",                 "i",  "ii"},
+   {"QuadrilateralsQ3Ordering",                 "i",  "ii"},
+   {"TetrahedraP2Ordering",                     "i",  "iiii"},
+   {"TetrahedraP3Ordering",                     "i",  "iiii"},
+   {"PyramidsP2Ordering",                       "i",  "iii"},
+   {"PyramidsP3Ordering",                       "i",  "iii"},
+   {"PrismsP2Ordering",                         "i",  "iiii"},
+   {"PrismsP3Ordering",                         "i",  "iiii"},
+   {"HexahedraQ2Ordering",                      "i",  "iii"},
+   {"HexahedraQ3Ordering",                      "i",  "iii"},
+   {"EdgesP1Ordering",                          "i",  "i"},
+   {"EdgesP4Ordering",                          "i",  "i"},
+   {"TrianglesP1Ordering",                      "i",  "iii"},
+   {"TrianglesP4Ordering",                      "i",  "iii"},
+   {"QuadrilateralsQ1Ordering",                 "i",  "ii"},
+   {"QuadrilateralsQ4Ordering",                 "i",  "ii"},
+   {"TetrahedraP1Ordering",                     "i",  "iiii"},
+   {"TetrahedraP4Ordering",                     "i",  "iiii"},
+   {"PyramidsP1Ordering",                       "i",  "iii"},
+   {"PyramidsP4Ordering",                       "i",  "iii"},
+   {"PrismsP1Ordering",                         "i",  "iiii"},
+   {"PrismsP4Ordering",                         "i",  "iiii"},
+   {"HexahedraQ1Ordering",                      "i",  "iii"},
+   {"HexahedraQ4Ordering",                      "i",  "iii"}
 };
 
 #ifdef TRANSMESH
@@ -411,10 +444,10 @@ static void    CalF77Prc(int64_t, int64_t, void *, int, void **);
 
 int64_t GmfOpenMesh(const char *FilNam, int mod, ...)
 {
-   int KwdCod, res, *PtrVer, *PtrDim;
-   int64_t MshIdx;
-   char str[ GmfStrSiz ];
-   va_list VarArg;
+   int      KwdCod, res, *PtrVer, *PtrDim;
+   int64_t  MshIdx;
+   char     str[ GmfStrSiz ];
+   va_list  VarArg;
    GmfMshSct *msh;
 
    /*---------------------*/
@@ -619,9 +652,9 @@ int64_t GmfOpenMesh(const char *FilNam, int mod, ...)
       // Write the mesh version and dimension
       if(msh->typ & Asc)
       {
-         fprintf(msh->hdl, "%s %d\n\n", \
+         fprintf(msh->hdl, "%s %d\n\n",
                GmfKwdFmt[ GmfVersionFormatted ][0], msh->ver);
-         fprintf(msh->hdl, "%s %d\n", \
+         fprintf(msh->hdl, "%s %d\n",
                GmfKwdFmt[ GmfDimension ][0], msh->dim);
       }
       else
@@ -684,10 +717,10 @@ int GmfCloseMesh(int64_t MshIdx)
 
 int64_t GmfStatKwd(int64_t MshIdx, int KwdCod, ...)
 {
-   int i, *PtrNmbTyp, *PtrSolSiz, *TypTab, *PtrDeg, *PtrNmbNod;
-   GmfMshSct *msh = (GmfMshSct *)MshIdx;
-   KwdSct *kwd;
-   va_list VarArg;
+   int         i, *PtrNmbTyp, *PtrSolSiz, *TypTab, *PtrDeg, *PtrNmbNod;
+   GmfMshSct   *msh = (GmfMshSct *)MshIdx;
+   KwdSct      *kwd;
+   va_list     VarArg;
 
    if( (KwdCod < 1) || (KwdCod > GmfMaxKwd) )
       return(0);
@@ -736,8 +769,8 @@ int64_t GmfStatKwd(int64_t MshIdx, int KwdCod, ...)
 
 int GmfGotoKwd(int64_t MshIdx, int KwdCod)
 {
-   GmfMshSct *msh = (GmfMshSct *)MshIdx;
-   KwdSct *kwd = &msh->KwdTab[ KwdCod ];
+   GmfMshSct   *msh = (GmfMshSct *)MshIdx;
+   KwdSct      *kwd = &msh->KwdTab[ KwdCod ];
 
    if( (KwdCod < 1) || (KwdCod > GmfMaxKwd) || !kwd->NmbLin )
       return(0);
@@ -752,11 +785,11 @@ int GmfGotoKwd(int64_t MshIdx, int KwdCod)
 
 int GmfSetKwd(int64_t MshIdx, int KwdCod, int64_t NmbLin, ...)
 {
-   int i, *TypTab;
-   int64_t CurPos;
-   va_list VarArg;
-   GmfMshSct *msh = (GmfMshSct *)MshIdx;
-   KwdSct *kwd;
+   int         i, *TypTab;
+   int64_t     CurPos;
+   va_list     VarArg;
+   GmfMshSct   *msh = (GmfMshSct *)MshIdx;
+   KwdSct      *kwd;
 
    RecBlk(msh, msh->buf, 0);
 
@@ -766,7 +799,7 @@ int GmfSetKwd(int64_t MshIdx, int KwdCod, int64_t NmbLin, ...)
    kwd = &msh->KwdTab[ KwdCod ];
 
    // Read further arguments if this kw is a solution
-   if(!strcmp(GmfKwdFmt[ KwdCod ][2], "sr") \
+   if(!strcmp(GmfKwdFmt[ KwdCod ][2], "sr")
    || !strcmp(GmfKwdFmt[ KwdCod ][2], "hr"))
    {
       va_start(VarArg, NmbLin);
@@ -882,12 +915,12 @@ int GmfSetKwd(int64_t MshIdx, int KwdCod, int64_t NmbLin, ...)
 
 int NAMF77(GmfGetLin, gmfgetlin)(TYPF77(int64_t)MshIdx, TYPF77(int)KwdCod, ...)
 {
-   int i;
-   float *FltSolTab, FltVal, *PtrFlt;
-   double *DblSolTab, *PtrDbl;
-   va_list VarArg;
-   GmfMshSct *msh = (GmfMshSct *) VALF77(MshIdx);
-   KwdSct *kwd = &msh->KwdTab[ VALF77(KwdCod) ];
+   int         i;
+   float       *FltSolTab, FltVal, *PtrFlt;
+   double      *DblSolTab, *PtrDbl;
+   va_list     VarArg;
+   GmfMshSct   *msh = (GmfMshSct *) VALF77(MshIdx);
+   KwdSct      *kwd = &msh->KwdTab[ VALF77(KwdCod) ];
 
    if( (VALF77(KwdCod) < 1) || (VALF77(KwdCod) > GmfMaxKwd) )
       return(0);
@@ -918,7 +951,7 @@ int NAMF77(GmfGetLin, gmfgetlin)(TYPF77(int64_t)MshIdx, TYPF77(int)KwdCod, ...)
                   }                     
                   else
                   {
-                     safe_fscanf(msh->hdl, "%lf", \
+                     safe_fscanf(msh->hdl, "%lf",
                               va_arg(VarArg, double *), msh->err);
                   }
                }
@@ -926,19 +959,19 @@ int NAMF77(GmfGetLin, gmfgetlin)(TYPF77(int64_t)MshIdx, TYPF77(int)KwdCod, ...)
                {
                   if(msh->ver <= 3)
                   {
-                     safe_fscanf(msh->hdl, "%d", \
+                     safe_fscanf(msh->hdl, "%d",
                         va_arg(VarArg, int *), msh->err);
                   }
                   else
                   {
                      // [Bruno] %ld -> INT64_T_FMT
-                     safe_fscanf(msh->hdl, INT64_T_FMT, \
+                     safe_fscanf(msh->hdl, INT64_T_FMT,
                               va_arg(VarArg, int64_t *), msh->err);
                   }
                }
                else if(kwd->fmt[i] == 'c')
                {
-                  safe_fgets( va_arg(VarArg, char *), \
+                  safe_fgets( va_arg(VarArg, char *),
                               WrdSiz * FilStrSiz, msh->hdl, msh->err);
                }
             }
@@ -1001,13 +1034,13 @@ int NAMF77(GmfGetLin, gmfgetlin)(TYPF77(int64_t)MshIdx, TYPF77(int)KwdCod, ...)
 
 int NAMF77(GmfSetLin, gmfsetlin)(TYPF77(int64_t) MshIdx, TYPF77(int) KwdCod, ...)
 {
-   int i, pos, *IntBuf;
-   int64_t *LngBuf;
-   float *FltSolTab, *FltBuf;
-   double *DblSolTab, *DblBuf;
-   va_list VarArg;
-   GmfMshSct *msh = (GmfMshSct *) VALF77(MshIdx);
-   KwdSct *kwd = &msh->KwdTab[ VALF77(KwdCod) ];
+   int         i, pos, *IntBuf;
+   int64_t     *LngBuf;
+   float       *FltSolTab, *FltBuf;
+   double      *DblSolTab, *DblBuf;
+   va_list     VarArg;
+   GmfMshSct   *msh = (GmfMshSct *) VALF77(MshIdx);
+   KwdSct      *kwd = &msh->KwdTab[ VALF77(KwdCod) ];
 
    if( ( VALF77(KwdCod) < 1) || ( VALF77(KwdCod) > GmfMaxKwd) )
       return(0);
@@ -1039,7 +1072,7 @@ int NAMF77(GmfSetLin, gmfsetlin)(TYPF77(int64_t) MshIdx, TYPF77(int) KwdCod, ...
                else
                {
                   // [Bruno] %ld -> INT64_T_FMT
-                  fprintf( msh->hdl, INT64_T_FMT " ", \
+                  fprintf( msh->hdl, INT64_T_FMT " ",
                            VALF77(va_arg(VarArg, TYPF77(int64_t))));
                }
             }
@@ -1139,13 +1172,13 @@ int NAMF77(GmfSetLin, gmfsetlin)(TYPF77(int64_t) MshIdx, TYPF77(int) KwdCod, ...
 
 int GmfCpyLin(int64_t InpIdx, int64_t OutIdx, int KwdCod)
 {
-   char s[ WrdSiz * FilStrSiz ];
-   double d;
-   float f;
-   int i, a;
-   int64_t l;
-   GmfMshSct *InpMsh = (GmfMshSct *)InpIdx, *OutMsh = (GmfMshSct *)OutIdx;
-   KwdSct *kwd = &InpMsh->KwdTab[ KwdCod ];
+   char        s[ WrdSiz * FilStrSiz ];
+   double      d;
+   float       f;
+   int         i, a;
+   int64_t     l;
+   GmfMshSct   *InpMsh = (GmfMshSct *)InpIdx, *OutMsh = (GmfMshSct *)OutIdx;
+   KwdSct      *kwd = &InpMsh->KwdTab[ KwdCod ];
 
    // Save the current stack environment for longjmp
    if(setjmp(InpMsh->err) != 0)
@@ -1262,36 +1295,36 @@ int GmfCpyLin(int64_t InpIdx, int64_t OutIdx, int KwdCod)
 /* Bufferized asynchronous reading of all keyword's lines                     */
 /*----------------------------------------------------------------------------*/
 
-int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx, \
-                                       TYPF77(int)     KwdCod, \
-                                       TYPF77(int64_t) BegIdx, \
-                                       TYPF77(int64_t) EndIdx, \
-                                       TYPF77(int)     MapTyp, \
-                                       void           *MapTab, \
+int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx,
+                                       TYPF77(int)     KwdCod,
+                                       TYPF77(int64_t) BegIdx,
+                                       TYPF77(int64_t) EndIdx,
+                                       TYPF77(int)     MapTyp,
+                                       void           *MapTab,
                                        void           *prc, ... )
 {
-   char *UsrDat[ GmfMaxTyp ], *FilBuf=NULL, *FrtBuf=NULL, *BckBuf=NULL;
-   char *UsrBas[ GmfMaxTyp ], *FilPos, *EndUsrDat;
-   // [Bruno] "%lld" -> INT64_T_FMT
-   char *StrTab[5] = { "", "%f", "%lf", "%d", INT64_T_FMT };
-   int b, i, j, LinSiz, *FilPtrI32, *UsrPtrI32, FilTyp[ GmfMaxTyp ], err, ret;
-   int UsrTyp[ GmfMaxTyp ], NmbBlk, SizTab[5] = {0,4,8,4,8}, *IntMapTab=NULL;
-   int64_t BlkNmbLin, *FilPtrI64, *UsrPtrI64, BlkBegIdx, BlkEndIdx=0;
-   int64_t *LngMapTab=NULL, OldIdx=0;
-   float *FilPtrR32, *UsrPtrR32;
-   double *FilPtrR64, *UsrPtrR64;
-   void (*UsrPrc)(int64_t, int64_t, void *) = NULL;
-   size_t UsrLen[ GmfMaxTyp ];
-   va_list VarArg;
-   GmfMshSct *msh = (GmfMshSct *) VALF77(MshIdx);
-   KwdSct *kwd = &msh->KwdTab[ VALF77(KwdCod) ];
-   int64_t FilBegIdx = VALF77(BegIdx), FilEndIdx = VALF77(EndIdx), UsrNmbLin;
-   struct aiocb aio;
+   char        *UsrDat[ GmfMaxTyp ], *UsrBas[ GmfMaxTyp ], *FilPos, *EndUsrDat;
+   char        *FilBuf = NULL, *FrtBuf = NULL, *BckBuf = NULL;
+   char        *StrTab[5] = { "", "%f", "%lf", "%d", INT64_T_FMT };
+   int         b, i, j, k, LinSiz, *FilPtrI32, *UsrPtrI32, FilTyp[ GmfMaxTyp ];
+   int         UsrTyp[ GmfMaxTyp ], NmbBlk, SizTab[5] = {0,4,8,4,8};
+   int         *IntMapTab = NULL, err;
+   float       *FilPtrR32, *UsrPtrR32;
+   double      *FilPtrR64, *UsrPtrR64;
+   int64_t     BlkNmbLin, *FilPtrI64, *UsrPtrI64, BlkBegIdx, BlkEndIdx = 0;
+   int64_t     *LngMapTab = NULL, OldIdx = 0, RepCnt, UsrNmbLin;
+   int64_t     FilBegIdx = VALF77(BegIdx), FilEndIdx = VALF77(EndIdx);
+   void        (*UsrPrc)(int64_t, int64_t, void *) = NULL;
+   size_t      UsrLen[ GmfMaxTyp ], ret;
+   va_list     VarArg;
+   GmfMshSct   *msh = (GmfMshSct *) VALF77(MshIdx);
+   KwdSct      *kwd = &msh->KwdTab[ VALF77(KwdCod) ];
+   struct      aiocb aio;
 #ifdef F77API
-   int NmbArg = 0;
-   void *ArgTab[ MaxArg ];
+   int         NmbArg = 0;
+   void        *ArgTab[ MaxArg ];
 #else
-   char *UsrArg = NULL;
+   char        *UsrArg = NULL;
 #endif
 
    // Save the current stack environment for longjmp
@@ -1355,8 +1388,26 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx, \
    {
       for(i=0;i<kwd->SolSiz;i++)
       {
-         // Get the type, begin and end pointers from the variable arguments
+         // Get the type from the variable arguments
          UsrTyp[i] = VALF77(va_arg(VarArg, TYPF77(int)));;
+
+         // If a table is given, read its size in the next argument
+         // and automatically fill the pointer table by incrementing
+         // as many times the base user address
+         if(UsrTyp[i] == GmfIntTab)
+         {
+            RepCnt = VALF77(va_arg(VarArg, TYPF77(int)));
+            UsrTyp[i] = GmfInt;
+         }
+         else if(UsrTyp[i] == GmfLongTab)
+         {
+            RepCnt = VALF77(va_arg(VarArg, TYPF77(int)));
+            UsrTyp[i] = GmfLong;
+         }
+         else
+            RepCnt = 0;
+
+         // Get the begin and end pointers from the variable arguments
          UsrDat[i] = UsrBas[i] = va_arg(VarArg, char *);
          EndUsrDat = va_arg(VarArg, char *);
 
@@ -1364,6 +1415,19 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx, \
             UsrLen[i] = (size_t)(EndUsrDat - UsrDat[i]) / (UsrNmbLin - 1);
          else
             UsrLen[i] = 0;
+
+         // Replicate the table data type and increment the base address
+         if(RepCnt >= 2)
+         {
+            for(j=i+1; j<i+RepCnt; j++)
+            {
+               UsrTyp[j] = UsrTyp[i];
+               UsrDat[j] = UsrBas[j] = UsrDat[ j-1 ] + SizTab[ UsrTyp[i] ];
+               UsrLen[j] = UsrLen[i];
+            }
+
+            i += RepCnt - 1;
+         }
       }
    }
    else if(kwd->typ == SolKwd)
@@ -1419,13 +1483,19 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx, \
       for(i=1;i<=FilEndIdx;i++)
          for(j=0;j<kwd->SolSiz;j++)
          {
-            safe_fscanf(msh->hdl, StrTab[ UsrTyp[j] ], UsrDat[j], msh->err);
+            // Reorder HO nodes on the fly
+            if(kwd->OrdTab && (j != kwd->SolSiz-1))
+               k = kwd->OrdTab[j];
+            else
+               k = j;
+
+            safe_fscanf(msh->hdl, StrTab[ UsrTyp[k] ], UsrDat[k], msh->err);
 
             // Move to the next user's data line only when the desired
             // begining position in the ascii file has been reached since
             // we cannot move directly to an arbitrary position
             if(i >= FilBegIdx)
-               UsrDat[j] += UsrLen[j];
+               UsrDat[k] += UsrLen[k];
          }
 
       // Call the user's preprocessing procedure
@@ -1547,12 +1617,18 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx, \
                   if(msh->cod != 1)
                      SwpWrd(FilPos, SizTab[ FilTyp[j] ]);
 
-                  if(IntMapTab)
-                     UsrDat[j] = UsrBas[j] + (IntMapTab[ OldIdx ] - 1) * UsrLen[j];
-                  else if(LngMapTab)
-                     UsrDat[j] = UsrBas[j] + (LngMapTab[ OldIdx ] - 1) * UsrLen[j];
+                  // Reorder HO nodes on the fly
+                  if(kwd->OrdTab && (j != kwd->SolSiz-1))
+                     k = kwd->OrdTab[j];
                   else
-                     UsrDat[j] = UsrBas[j] + (OldIdx - 1) * UsrLen[j];
+                     k = j;
+
+                  if(IntMapTab)
+                     UsrDat[j] = UsrBas[k] + (IntMapTab[ OldIdx ] - 1) * UsrLen[k];
+                  else if(LngMapTab)
+                     UsrDat[j] = UsrBas[k] + (LngMapTab[ OldIdx ] - 1) * UsrLen[k];
+                  else
+                     UsrDat[j] = UsrBas[k] + (OldIdx - 1) * UsrLen[k];
 
                   if(FilTyp[j] == GmfInt)
                   {
@@ -1616,7 +1692,6 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx, \
                   }
 
                   FilPos += SizTab[ FilTyp[j] ];
-                  UsrDat[j] += UsrLen[j];
                }
             }
 
@@ -1642,37 +1717,36 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx, \
 /* Bufferized writing of all keyword's lines                                  */
 /*----------------------------------------------------------------------------*/
 
-int NAMF77(GmfSetBlock, gmfsetblock)(  TYPF77(int64_t) MshIdx, \
-                                       TYPF77(int)     KwdCod, \
-                                       TYPF77(int64_t) BegIdx, \
-                                       TYPF77(int64_t) EndIdx, \
-                                       TYPF77(int)     MapTyp, \
-                                       void           *MapTab, \
+int NAMF77(GmfSetBlock, gmfsetblock)(  TYPF77(int64_t) MshIdx,
+                                       TYPF77(int)     KwdCod,
+                                       TYPF77(int64_t) BegIdx,
+                                       TYPF77(int64_t) EndIdx,
+                                       TYPF77(int)     MapTyp,
+                                       void           *MapTab,
                                        void           *prc, ... )
 {
-   char *UsrDat[ GmfMaxTyp ], *FilBuf=NULL, *FrtBuf=NULL, *BckBuf=NULL;
-   char *StrTab[5] = { "", "%g", "%.15g", "%d", "%lld" }, *FilPos;
-   char *UsrBas[ GmfMaxTyp ], *EndUsrDat;
-   int i, j, LinSiz, *FilPtrI32, *UsrPtrI32, FilTyp[ GmfMaxTyp ];
-   int UsrTyp[ GmfMaxTyp ], NmbBlk, b, SizTab[5] = {0,4,8,4,8};
-   int err, ret, *IntMapTab = NULL;
-   int64_t *FilPtrI64, *UsrPtrI64, BlkNmbLin = 0, BlkBegIdx, BlkEndIdx = 0;
-   int64_t *LngMapTab = NULL;
-   float *FilPtrR32, *UsrPtrR32;
-   double *FilPtrR64, *UsrPtrR64;
-   void (*UsrPrc)(int64_t, int64_t, void *) = NULL;
-   size_t UsrLen[ GmfMaxTyp ];
-   va_list VarArg;
-   GmfMshSct *msh = (GmfMshSct *) VALF77(MshIdx);
-   KwdSct *kwd = &msh->KwdTab[ VALF77(KwdCod) ];
-   //int64_t FilBegIdx = VALF77(BegIdx), FilEndIdx = VALF77(EndIdx), UsrNmbLin;
-   int64_t FilBegIdx = 1, FilEndIdx = kwd->NmbLin, UsrNmbLin, OldIdx=0;
-   struct aiocb aio;
+   char        *UsrDat[ GmfMaxTyp ], *UsrBas[ GmfMaxTyp ], *EndUsrDat;
+   char        *StrTab[5] = { "", "%g", "%.15g", "%d", "%lld" }, *FilPos;
+   char        *FilBuf = NULL, *FrtBuf = NULL, *BckBuf = NULL;
+   int         i, j, LinSiz, *FilPtrI32, *UsrPtrI32, FilTyp[ GmfMaxTyp ];
+   int         UsrTyp[ GmfMaxTyp ], NmbBlk, b, SizTab[5] = {0,4,8,4,8};
+   int         err, *IntMapTab = NULL, RepCnt;
+   float       *FilPtrR32, *UsrPtrR32;
+   double      *FilPtrR64, *UsrPtrR64;
+   int64_t     UsrNmbLin, BlkNmbLin = 0, BlkBegIdx, BlkEndIdx = 0;
+   int64_t     *FilPtrI64, *UsrPtrI64, *LngMapTab = NULL, OldIdx = 0;
+   int64_t     FilBegIdx = VALF77(BegIdx), FilEndIdx = VALF77(EndIdx);
+   void        (*UsrPrc)(int64_t, int64_t, void *) = NULL;
+   size_t      UsrLen[ GmfMaxTyp ], ret;
+   va_list     VarArg;
+   GmfMshSct   *msh = (GmfMshSct *) VALF77(MshIdx);
+   KwdSct      *kwd = &msh->KwdTab[ VALF77(KwdCod) ];
+   struct      aiocb aio;
 #ifdef F77API
-   int NmbArg = 0;
-   void *ArgTab[ MaxArg ];
+   int         NmbArg = 0;
+   void        *ArgTab[ MaxArg ];
 #else
-   char *UsrArg = NULL;
+   char        *UsrArg = NULL;
 #endif
 
    // Save the current stack environment for longjmp
@@ -1691,6 +1765,11 @@ int NAMF77(GmfSetBlock, gmfsetblock)(  TYPF77(int64_t) MshIdx, \
    // Make sure it's not a simple information keyword
    if( (kwd->typ != RegKwd) && (kwd->typ != SolKwd) )
       return(0);
+
+   // Temporarily overwright the given begin and end values
+   // as arbitrary position block write is not yet implemented
+   FilBegIdx = 1;
+   FilEndIdx = kwd->NmbLin;
 
    // Check user's bounds
    if( (FilBegIdx < 1) || (FilBegIdx > FilEndIdx) || (FilEndIdx > kwd->NmbLin) )
@@ -1733,8 +1812,26 @@ int NAMF77(GmfSetBlock, gmfsetblock)(  TYPF77(int64_t) MshIdx, \
    {
       for(i=0;i<kwd->SolSiz;i++)
       {
-         // Get the type, begin and end pointers from the variable arguments
-         UsrTyp[i] = VALF77(va_arg(VarArg, TYPF77(int)));;
+         // Get the type from the variable arguments
+         UsrTyp[i] = VALF77(va_arg(VarArg, TYPF77(int)));
+
+         // If a table is given, read its size in the next argument
+         // and automatically fill the pointer table by incrementing
+         // as many times the base user address
+         if(UsrTyp[i] == GmfIntTab)
+         {
+            RepCnt = VALF77(va_arg(VarArg, TYPF77(int)));
+            UsrTyp[i] = GmfInt;
+         }
+         else if(UsrTyp[i] == GmfLongTab)
+         {
+            RepCnt = VALF77(va_arg(VarArg, TYPF77(int)));
+            UsrTyp[i] = GmfLong;
+         }
+         else
+            RepCnt = 0;
+
+         // Get the begin and end pointers from the variable arguments
          UsrDat[i] = UsrBas[i] = va_arg(VarArg, char *);
          EndUsrDat = va_arg(VarArg, char *);
 
@@ -1742,6 +1839,19 @@ int NAMF77(GmfSetBlock, gmfsetblock)(  TYPF77(int64_t) MshIdx, \
             UsrLen[i] = (size_t)(EndUsrDat - UsrDat[i]) / (UsrNmbLin - 1);
          else
             UsrLen[i] = 0;
+
+         // Replicate the table data type and increment the base address
+         if(RepCnt >= 2)
+         {
+            for(j=i+1; j<i+RepCnt; j++)
+            {
+               UsrTyp[j] = UsrTyp[i];
+               UsrDat[j] = UsrBas[j] = UsrDat[ j-1 ] + SizTab[ UsrTyp[i] ];
+               UsrLen[j] = UsrLen[i];
+            }
+
+            i += RepCnt - 1;
+         }
       }
    }
    else if(kwd->typ == SolKwd)
@@ -2019,7 +2129,130 @@ int NAMF77(GmfSetBlock, gmfsetblock)(  TYPF77(int64_t) MshIdx, \
    return(1);
 }
 
+
+/*----------------------------------------------------------------------------*/
+/* Map two HO element's nodes numbering orders                                */
+/*----------------------------------------------------------------------------*/
+
+int GmfSetHONodesOrdering(int64_t MshIdx, int KwdCod, int *BasTab, int *OrdTab)
+{
+   int i, j, k, flg, NmbNod, NmbCrd;
+   GmfMshSct   *msh = (GmfMshSct *)MshIdx;
+   KwdSct      *kwd;
+
+   if( (KwdCod < 1) || (KwdCod > GmfMaxKwd) )
+      return(0);
+
+   kwd = &msh->KwdTab[ KwdCod ];
+
+   // Find the Bezier indices dimension according to the element's kind
+   switch(KwdCod)
+   {
+      case GmfEdgesP2 :          NmbNod =  3; NmbCrd = 1; break;
+      case GmfEdgesP3 :          NmbNod =  4; NmbCrd = 1; break;
+      case GmfTrianglesP2 :      NmbNod =  6; NmbCrd = 3; break;
+      case GmfTrianglesP3 :      NmbNod = 10; NmbCrd = 3; break;
+      case GmfQuadrilateralsQ2 : NmbNod =  9; NmbCrd = 2; break;
+      case GmfQuadrilateralsQ3 : NmbNod = 16; NmbCrd = 2; break;
+      case GmfTetrahedraP2 :     NmbNod = 10; NmbCrd = 4; break;
+      case GmfTetrahedraP3 :     NmbNod = 20; NmbCrd = 4; break;
+      case GmfPyramidsP2 :       NmbNod = 14; NmbCrd = 3; break;
+      case GmfPyramidsP3 :       NmbNod = 30; NmbCrd = 3; break;
+      case GmfPrismsP2 :         NmbNod = 18; NmbCrd = 4; break;
+      case GmfPrismsP3 :         NmbNod = 40; NmbCrd = 4; break;
+      case GmfHexahedraQ2 :      NmbNod = 27; NmbCrd = 3; break;
+      case GmfHexahedraQ3 :      NmbNod = 64; NmbCrd = 3; break;
+      default : return(0);
+   }
+
+   // Free and rebuild the mapping table it there were already one
+   if(kwd->OrdTab)
+      free(kwd->OrdTab);
+
+   if(!(kwd->OrdTab = malloc(NmbNod * sizeof(int))))
+      return(0);
+
+   // Find the corresponding Bezier coordinates from the source table
+   for(i=0;i<NmbNod;i++)
+   {
+      for(j=0;j<NmbNod;j++)
+      {
+         flg = 1;
+
+         for(k=0;k<NmbCrd;k++)
+            if(BasTab[ i * NmbCrd + k ] != OrdTab[ j * NmbCrd + k ])
+            {
+               flg = 0;
+               break;
+            }
+
+         if(flg)
+            kwd->OrdTab[j] = i;
+      }
+   }
+
+   for(i=0;i<NmbNod;i++)
+      printf("%d : %d\n",i,kwd->OrdTab[i]);
+
+   return(1);
+}
+
 #endif
+
+
+#ifndef F77API
+
+
+/*----------------------------------------------------------------------------*/
+/* Read an EGADS binary CAD and return the byte flow and its exact byte size  */
+/*----------------------------------------------------------------------------*/
+
+char *GmfReadByteFlow(int64_t MshIdx, int *NmbByt)
+{
+   int         i, cod, *WrdTab, NmbWrd;
+   GmfMshSct   *msh = (GmfMshSct *)MshIdx;
+
+   if(!(NmbWrd = GmfStatKwd(MshIdx, GmfByteFlow)))
+      return(NULL);
+
+   if(!(WrdTab = malloc(NmbWrd * WrdSiz)))
+      return(NULL);
+
+   cod = msh->cod;
+   msh->cod = 1;
+
+   GmfGotoKwd(MshIdx, GmfByteFlow);
+   GmfGetLin(MshIdx, GmfByteFlow, NmbByt);
+
+   for(i=0;i<NmbWrd;i++)
+      GmfGetLin(MshIdx, GmfByteFlow, &WrdTab[i]);
+
+   msh->cod = cod;
+
+   return((char *)WrdTab);
+}
+
+
+/*----------------------------------------------------------------------------*/
+/* Write an EGADS binary CAD as an integer table whose first entry is the size*/
+/*----------------------------------------------------------------------------*/
+
+int GmfWriteByteFlow(int64_t MshIdx, char *BytTab, int NmbByt)
+{
+   int i, *WrdTab = (int *)BytTab, NmbWrd = NmbByt / WrdSiz + 1;
+
+   if(!GmfSetKwd(MshIdx, GmfByteFlow, NmbWrd + 1))
+      return(0);
+
+   GmfSetLin(MshIdx, GmfByteFlow, NmbByt);
+
+   for(i=0;i<NmbWrd;i++)
+      GmfSetLin(MshIdx, GmfByteFlow, WrdTab[i]);
+
+   return(1);
+}
+#endif
+
 
 /*----------------------------------------------------------------------------*/
 /* Find every kw present in a meshfile                                        */
@@ -2027,9 +2260,9 @@ int NAMF77(GmfSetBlock, gmfsetblock)(  TYPF77(int64_t) MshIdx, \
 
 static int ScaKwdTab(GmfMshSct *msh)
 {
-   int KwdCod, c;
+   int      KwdCod, c;
    int64_t  NexPos, EndPos;
-   char str[ GmfStrSiz ];
+   char     str[ GmfStrSiz ];
 
    if(msh->typ & Asc)
    {
@@ -2087,8 +2320,8 @@ static int ScaKwdTab(GmfMshSct *msh)
 
 static void ScaKwdHdr(GmfMshSct *msh, int KwdCod)
 {
-   int i;
-   KwdSct *kwd = &msh->KwdTab[ KwdCod ];
+   int      i;
+   KwdSct   *kwd = &msh->KwdTab[ KwdCod ];
 
    if(!strcmp("i", GmfKwdFmt[ KwdCod ][1]))
       if(msh->typ & Asc)
@@ -2104,7 +2337,7 @@ static void ScaKwdHdr(GmfMshSct *msh, int KwdCod)
    else
       kwd->NmbLin = 1;
 
-   if(!strcmp("sr", GmfKwdFmt[ KwdCod ][2]) \
+   if(!strcmp("sr", GmfKwdFmt[ KwdCod ][2])
    || !strcmp("hr", GmfKwdFmt[ KwdCod ][2]) )
    {
       if(msh->typ & Asc)
@@ -2159,10 +2392,10 @@ static void ScaKwdHdr(GmfMshSct *msh, int KwdCod)
 
 static void ExpFmt(GmfMshSct *msh, int KwdCod)
 {
-   int i, j, TmpSiz=0, IntWrd, FltWrd;
-   char chr;
-   const char *InpFmt = GmfKwdFmt[ KwdCod ][2];
-   KwdSct *kwd = &msh->KwdTab[ KwdCod ];
+   int         i, j, TmpSiz=0, IntWrd, FltWrd;
+   char        chr;
+   const char  *InpFmt = GmfKwdFmt[ KwdCod ][2];
+   KwdSct      *kwd = &msh->KwdTab[ KwdCod ];
 
    // Set the kwd's type
    if(!strlen(GmfKwdFmt[ KwdCod ][1]))
@@ -2281,8 +2514,8 @@ static void ScaDblWrd(GmfMshSct *msh, void *ptr)
 
 static int64_t GetPos(GmfMshSct *msh)
 {
-   int IntVal;
-   int64_t pos;
+   int      IntVal;
+   int64_t  pos;
 
    if(msh->ver >= 3)
       ScaDblWrd(msh, (unsigned char*)&pos);
@@ -2362,14 +2595,14 @@ static void RecBlk(GmfMshSct *msh, const void *blk, int siz)
 #else      
       if(fwrite(msh->blk, 1, (size_t)msh->pos, msh->hdl) != msh->pos)
 #endif      
-         longjmp(msh->err,-1);
+         longjmp(msh->err, -1);
 #else      
 #ifdef WITH_AIO
       if(write(msh->FilDes, msh->blk, msh->pos) != msh->pos)
 #else      
-      if(fwrite(msh->blk, 1, (size_t)msh->pos, msh->hdl) != msh->pos)
+      if(fwrite(msh->blk, 1, msh->pos, msh->hdl) != msh->pos)
 #endif      
-         longjmp(msh->err,-1);
+         longjmp(msh->err, -1);
 #endif      
       msh->pos = 0;
    }
@@ -2400,8 +2633,8 @@ static void SetPos(GmfMshSct *msh, int64_t pos)
 
 static void SwpWrd(char *wrd, int siz)
 {
-   char swp;
-   int i;
+   char  swp;
+   int   i;
 
    for(i=0;i<siz/2;i++)
    {
@@ -2495,11 +2728,18 @@ static int64_t GetFilSiz(GmfMshSct *msh)
 
 #ifdef F77API
 
-int64_t APIF77(gmfopenmesh)(char *FilNam, int *mod, \
-                              int *ver, int *dim, int StrSiz)
+int64_t APIF77(gmfopenmesh)(  char *FilNam, int *mod,
+                              int *ver, int *dim, int StrSiz )
 {
-   int i;
-   char TmpNam[ GmfStrSiz ];
+   int   i = 0;
+   char  TmpNam[ GmfStrSiz ];
+
+   if(StrSiz <= 0)
+      return(0);
+
+   // Trim trailing spaces from the fortran string
+   while(isspace(FilNam[ StrSiz-1 ]))
+      StrSiz--;
 
    for(i=0;i<StrSiz;i++)
       TmpNam[i] = FilNam[i];
@@ -2522,7 +2762,7 @@ int APIF77(gmfgotokwd)(int64_t *MshIdx, int *KwdIdx)
    return(GmfGotoKwd(*MshIdx, *KwdIdx));
 }
 
-int APIF77(gmfstatkwd)( int64_t *MshIdx, int *KwdIdx, int *NmbTyp, \
+int APIF77(gmfstatkwd)( int64_t *MshIdx, int *KwdIdx, int *NmbTyp,
                         int *SolSiz, int *TypTab)
 {
    if(!strcmp(GmfKwdFmt[ *KwdIdx ][2], "sr"))
@@ -2531,7 +2771,7 @@ int APIF77(gmfstatkwd)( int64_t *MshIdx, int *KwdIdx, int *NmbTyp, \
       return(GmfStatKwd(*MshIdx, *KwdIdx));
 }
 
-int APIF77(gmfsetkwd)(  int64_t *MshIdx, int *KwdIdx, int *NmbLin, \
+int APIF77(gmfsetkwd)(  int64_t *MshIdx, int *KwdIdx, int *NmbLin,
                         int *NmbTyp, int *TypTab)
 {
    if(!strcmp(GmfKwdFmt[ *KwdIdx ][2], "sr"))
@@ -2595,147 +2835,147 @@ int APIF77(gmfsetkwd)(  int64_t *MshIdx, int *KwdIdx, int *NmbLin, \
 /* Call a fortran thread with 1 to 20 arguments                               */
 /*----------------------------------------------------------------------------*/
 
-static void CalF77Prc(  int64_t BegIdx, int64_t EndIdx, \
+static void CalF77Prc(  int64_t BegIdx, int64_t EndIdx,
                         void *prc, int NmbArg, void **ArgTab )
 {
    switch(NmbArg)
    {
       case 1 :
       {
-         void (*prc1)(int64_t *, int64_t *, DUP(void *, 1)) = \
+         void (*prc1)(int64_t *, int64_t *, DUP(void *, 1)) =
             (void (*)(int64_t *, int64_t *, DUP(void *, 1)))prc;
          prc1(&BegIdx, &EndIdx, ARG(ArgTab, 1));
       }break;
 
       case 2 :
       {
-         void (*prc1)(int64_t *, int64_t *, DUP(void *, 2)) = \
+         void (*prc1)(int64_t *, int64_t *, DUP(void *, 2)) =
             (void (*)(int64_t *, int64_t *, DUP(void *, 2)))prc;
          prc1(&BegIdx, &EndIdx, ARG(ArgTab, 2));
       }break;
 
       case 3 :
       {
-         void (*prc1)(int64_t *, int64_t *, DUP(void *, 3)) = \
+         void (*prc1)(int64_t *, int64_t *, DUP(void *, 3)) =
             (void (*)(int64_t *, int64_t *, DUP(void *, 3)))prc;
          prc1(&BegIdx, &EndIdx, ARG(ArgTab, 3));
       }break;
 
       case 4 :
       {
-         void (*prc1)(int64_t *, int64_t *, DUP(void *, 4)) = \
+         void (*prc1)(int64_t *, int64_t *, DUP(void *, 4)) =
             (void (*)(int64_t *, int64_t *, DUP(void *, 4)))prc;
          prc1(&BegIdx, &EndIdx, ARG(ArgTab, 4));
       }break;
 
       case 5 :
       {
-         void (*prc1)(int64_t *, int64_t *, DUP(void *, 5)) = \
+         void (*prc1)(int64_t *, int64_t *, DUP(void *, 5)) =
             (void (*)(int64_t *, int64_t *, DUP(void *, 5)))prc;
          prc1(&BegIdx, &EndIdx, ARG(ArgTab, 5));
       }break;
 
       case 6 :
       {
-         void (*prc1)(int64_t *, int64_t *, DUP(void *, 6)) = \
+         void (*prc1)(int64_t *, int64_t *, DUP(void *, 6)) =
             (void (*)(int64_t *, int64_t *, DUP(void *, 6)))prc;
          prc1(&BegIdx, &EndIdx, ARG(ArgTab, 6));
       }break;
 
       case 7 :
       {
-         void (*prc1)(int64_t *, int64_t *, DUP(void *, 7)) = \
+         void (*prc1)(int64_t *, int64_t *, DUP(void *, 7)) =
             (void (*)(int64_t *, int64_t *, DUP(void *, 7)))prc;
          prc1(&BegIdx, &EndIdx, ARG(ArgTab, 7));
       }break;
 
       case 8 :
       {
-         void (*prc1)(int64_t *, int64_t *, DUP(void *, 8)) = \
+         void (*prc1)(int64_t *, int64_t *, DUP(void *, 8)) =
             (void (*)(int64_t *, int64_t *, DUP(void *, 8)))prc;
          prc1(&BegIdx, &EndIdx, ARG(ArgTab, 8));
       }break;
 
       case 9 :
       {
-         void (*prc1)(int64_t *, int64_t *, DUP(void *, 9)) = \
+         void (*prc1)(int64_t *, int64_t *, DUP(void *, 9)) =
             (void (*)(int64_t *, int64_t *, DUP(void *, 9)))prc;
          prc1(&BegIdx, &EndIdx, ARG(ArgTab, 9));
       }break;
 
       case 10 :
       {
-         void (*prc1)(int64_t *, int64_t *, DUP(void *, 10)) = \
+         void (*prc1)(int64_t *, int64_t *, DUP(void *, 10)) =
             (void (*)(int64_t *, int64_t *, DUP(void *, 10)))prc;
          prc1(&BegIdx, &EndIdx, ARG(ArgTab, 10));
       }break;
 
       case 11 :
       {
-         void (*prc1)(int64_t *, int64_t *, DUP(void *, 11)) = \
+         void (*prc1)(int64_t *, int64_t *, DUP(void *, 11)) =
             (void (*)(int64_t *, int64_t *, DUP(void *, 11)))prc;
          prc1(&BegIdx, &EndIdx, ARG(ArgTab, 11));
       }break;
 
       case 12 :
       {
-         void (*prc1)(int64_t *, int64_t *, DUP(void *, 12)) = \
+         void (*prc1)(int64_t *, int64_t *, DUP(void *, 12)) =
             (void (*)(int64_t *, int64_t *, DUP(void *, 12)))prc;
          prc1(&BegIdx, &EndIdx, ARG(ArgTab, 12));
       }break;
 
       case 13 :
       {
-         void (*prc1)(int64_t *, int64_t *, DUP(void *, 13)) = \
+         void (*prc1)(int64_t *, int64_t *, DUP(void *, 13)) =
             (void (*)(int64_t *, int64_t *, DUP(void *, 13)))prc;
          prc1(&BegIdx, &EndIdx, ARG(ArgTab, 13));
       }break;
 
       case 14 :
       {
-         void (*prc1)(int64_t *, int64_t *, DUP(void *, 14)) = \
+         void (*prc1)(int64_t *, int64_t *, DUP(void *, 14)) =
             (void (*)(int64_t *, int64_t *, DUP(void *, 14)))prc;
          prc1(&BegIdx, &EndIdx, ARG(ArgTab, 14));
       }break;
 
       case 15 :
       {
-         void (*prc1)(int64_t *, int64_t *, DUP(void *, 15)) = \
+         void (*prc1)(int64_t *, int64_t *, DUP(void *, 15)) =
             (void (*)(int64_t *, int64_t *, DUP(void *, 15)))prc;
          prc1(&BegIdx, &EndIdx, ARG(ArgTab, 15));
       }break;
 
       case 16 :
       {
-         void (*prc1)(int64_t *, int64_t *, DUP(void *, 16)) = \
+         void (*prc1)(int64_t *, int64_t *, DUP(void *, 16)) =
             (void (*)(int64_t *, int64_t *, DUP(void *, 16)))prc;
          prc1(&BegIdx, &EndIdx, ARG(ArgTab, 16));
       }break;
 
       case 17 :
       {
-         void (*prc1)(int64_t *, int64_t *, DUP(void *, 17)) = \
+         void (*prc1)(int64_t *, int64_t *, DUP(void *, 17)) =
             (void (*)(int64_t *, int64_t *, DUP(void *, 17)))prc;
          prc1(&BegIdx, &EndIdx, ARG(ArgTab, 17));
       }break;
 
       case 18 :
       {
-         void (*prc1)(int64_t *, int64_t *, DUP(void *, 18)) = \
+         void (*prc1)(int64_t *, int64_t *, DUP(void *, 18)) =
             (void (*)(int64_t *, int64_t *, DUP(void *, 18)))prc;
          prc1(&BegIdx, &EndIdx, ARG(ArgTab, 18));
       }break;
 
       case 19 :
       {
-         void (*prc1)(int64_t *, int64_t *, DUP(void *, 19)) = \
+         void (*prc1)(int64_t *, int64_t *, DUP(void *, 19)) =
             (void (*)(int64_t *, int64_t *, DUP(void *, 19)))prc;
          prc1(&BegIdx, &EndIdx, ARG(ArgTab, 19));
       }break;
 
       case 20 :
       {
-         void (*prc1)(int64_t *, int64_t *, DUP(void *, 20)) = \
+         void (*prc1)(int64_t *, int64_t *, DUP(void *, 20)) =
             (void (*)(int64_t *, int64_t *, DUP(void *, 20)))prc;
          prc1(&BegIdx, &EndIdx, ARG(ArgTab, 20));
       }break;
