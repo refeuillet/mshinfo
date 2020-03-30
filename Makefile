@@ -2,8 +2,8 @@
 
 all: mshinfo
 
-mshinfo:	libmeshb7.c mshinfo.c libmeshb7.h
-	gcc libmeshb7.c mshinfo.c -Wall -I. -o mshinfo
+mshinfo:	libMeshb/sources/libmeshb7.c mshinfo.c libMeshb/sources/libmeshb7.h
+	gcc libMeshb/sources/libmeshb7.c mshinfo.c -Wall -I./libMeshb/sources -o mshinfo
 
 clean : mshinfo
 	rm -f mshinfo
