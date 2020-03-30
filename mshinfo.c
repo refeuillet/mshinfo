@@ -284,7 +284,8 @@ int main(int argc, char *argv[])
     }
 
     NmbStr = GmfStatKwd(InpMsh, GmfReferenceStrings);
-    printf("Number of Reference Strings : %d\n", NmbStr);
+    if (NmbStr > 0)
+      printf("Number of Reference Strings = %d\n", NmbStr);
     GmfCloseMesh(InpMsh);
   }
 
@@ -335,7 +336,8 @@ int main(int argc, char *argv[])
     }
     printf("dim = %d; ite = %d; time = %lg\n", dim, ite, time);
     NmbStr = GmfStatKwd(InpSol, GmfReferenceStrings);
-    printf("Number of Reference Strings : %d\n", NmbStr);
+    if (NmbStr > 0)
+      printf("Number of Reference Strings = %d\n", NmbStr);
     for (i = 1; i <= GmfMaxKwd; i++)
     {
       if (((!strcmp(GmfKwdFmt[i][2], "sr") || !strcmp(GmfKwdFmt[i][2], "hr"))) && ((NbrLin = GmfStatKwd(InpSol, i, &NbrTyp, &SolSiz, TypTab, &deg, &NmbNod))))
