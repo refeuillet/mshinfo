@@ -2,14 +2,14 @@
 
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
-/*                               LIBMESH V 7.39                               */
+/*                               LIBMESH V 7.53                               */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
 /*    Description:        handle .meshb file format I/O                       */
 /*    Author:             Loic MARECHAL                                       */
 /*    Creation date:      dec 09 1999                                         */
-/*    Last modification:  aug 03 2018                                         */
+/*    Last modification:  apr 26 2019                                         */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -39,8 +39,14 @@
 #define GmfDouble 2
 #define GmfInt 3
 #define GmfLong 4
-#define GmfIntTab 5
-#define GmfLongTab 6
+#define GmfFloatVec 5
+#define GmfDoubleVec 6
+#define GmfIntTab 7
+#define GmfIntVec 7
+#define GmfLongTab 8
+#define GmfLongVec 8
+#define GmfArgTab 100
+#define GmfArgLst 101
 
 enum GmfKwdCod
 {
@@ -169,7 +175,7 @@ enum GmfKwdCod
    GmfHOSolAtHexahedraQ1,
    GmfHOSolAtHexahedraQ2,
    GmfHOSolAtHexahedraQ3,
-   GmfBezierMode,
+   GmfBezierBasis,
    GmfByteFlow,
    GmfEdgesP2Ordering,
    GmfEdgesP3Ordering,
@@ -235,13 +241,15 @@ enum GmfKwdCod
    GmfHOSolAtHexahedraQ2NodesPositions,
    GmfHOSolAtHexahedraQ3NodesPositions,
    GmfHOSolAtHexahedraQ4NodesPositions,
-   GmfEdgesReferenceElement,         
-   GmfTriangleReferenceElement,      
-   GmfQuadrilateralReferenceElement, 
-   GmfTetrahedronReferenceElement,   
-   GmfPyramidReferenceElement,       
-   GmfPrismReferenceElement,         
-   GmfHexahedronReferenceElement,    
+   GmfEdgesReferenceElement,
+   GmfTriangleReferenceElement,
+   GmfQuadrilateralReferenceElement,
+   GmfTetrahedronReferenceElement,
+   GmfPyramidReferenceElement,
+   GmfPrismReferenceElement,
+   GmfHexahedronReferenceElement,
+   GmfBoundaryLayers,
+   GmfReferenceStrings,
    GmfLastKeyword
 };
 
